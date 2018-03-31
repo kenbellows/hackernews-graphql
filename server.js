@@ -15,12 +15,14 @@ const fetch = require('node-fetch'),
 
 const API = 'https://hacker-news.firebaseio.com/v0'
 function getItem(id) {
-  console.log("querying", `${API}/item/${id}.json`)
   return fetch(`${API}/item/${id}.json`).then(res => res.json())
 }
 function getUser(id) {
-  console.log("querying", `${API}/user/${id}.json`)
-  return fetch(`${API}/user/${id}.json`).then(res => res.json())
+   return fetch(`${API}/user/${id}.json`).then(res => res.json())
+}
+
+function paginate(list, index=0, limit=50) {
+  return list.slice(index, index+limit)
 }
 
 // Define the User type
@@ -32,7 +34,18 @@ const User = new GraphQLObjectType({
     karma: { type: GraphQLInt },
     about: { type: GraphQLString },
     delay: { type: GraphQLInt },
-    submitted: { type: new GraphQLList(Item)	},
+    submitted: { 
+      type: new GraphQLList(Item),
+      args: {
+        index: { type: GraphQLInt },
+        limit: { type: GraphQLInt }
+      },
+      resolve: ({submitted}, {index,limit}) => Promise.all(paginate(submitted,index,limit).map(getItem))
+    },
+    submittedCount: {
+      type: GraphQLInt,
+      resolve: ({submitted}) => sbubmitted.length
+    },
     raw: {
       type: GraphQLString,
       resolve: (o) => JSON.stringify(o)
@@ -54,7 +67,11 @@ const Item = new GraphQLObjectType({
     delay: { type: GraphQLInt },
     kids: {
       type: new GraphQLList(Item),
-      resolve: ({kids}) => Promise.all(kids.map(getItem))
+      args: {
+        index: { type: GraphQLInt },
+        limit: { type: GraphQLInt }
+      }
+      resolve: ({kids}, {index,limit}) => Promise.all(paginate(kids,index,limit).map(getItem))
     },
     parent: {
       type: Item,
