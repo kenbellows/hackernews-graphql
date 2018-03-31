@@ -13,12 +13,21 @@ const fetch = require('node-fetch'),
         GraphQLSchema
       } = require('graphql')
 
+const cache = {
+  item: {},
+  user: {}
+}
+
 const API = 'https://hacker-news.firebaseio.com/v0'
 function getItem(id) {
-  return fetch(`${API}/item/${id}.json`).then(res => res.json())
+  if (!cache.item[id])
+    cache.item[id] = fetch(`${API}/item/${id}.json`).then(res => res.json())
+  return cache.item[id]
 }
 function getUser(id) {
-   return fetch(`${API}/user/${id}.json`).then(res => res.json())
+  if (!cache.user[id])
+    cache.user[id] = fetch(`${API}/user/${id}.json`).then(res => res.json())
+  return cache.user[id]
 }
 
 function paginate(list, index=0, limit=50) {
