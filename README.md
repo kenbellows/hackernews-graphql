@@ -1,2 +1,2 @@
 # hackernews-graphql
-A GraphQL wrapper around the Hacker News API
+A tiny GraphQL wrapper around [the Hacker News REST API](https://github.com/HackerNews/API).
